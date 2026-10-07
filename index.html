@@ -200,7 +200,7 @@ textarea { width: 100%; font: inherit; color: var(--ink); background: transparen
         </div>
         <div class="feature">
           <h3>Calculations</h3>
-          <p>Bolus volumes, CRIs by syringe pump or fluid bag, and reversals sized to the drug and strength given. Every result shows its math.</p>
+          <p>Bolus volumes, CRIs by syringe pump or fluid bag, and reversals sized to the drug and strength given. Every result shows its math. Open them from a patient and the weight is already filled in.</p>
         </div>
       </div>
     </section>
@@ -278,7 +278,7 @@ textarea { width: 100%; font: inherit; color: var(--ink); background: transparen
 
   const ranges = { Dog: { hr: [60, 140], rr: [10, 30], t: [100, 102.5] }, Cat: { hr: [140, 220], rr: [20, 40], t: [100, 102.5] } };
 
-  let state = { tab: "patients", view: "list", patientId: null, segment: "history" };
+  let state = { tab: "patients", view: "list", patientId: null, segment: "history", calcPatientId: null };
   let vitalsForm = null;
 
   const chevron = '<span class="chev" aria-hidden="true">›</span>';
@@ -334,6 +334,10 @@ textarea { width: 100%; font: inherit; color: var(--ink); background: transparen
         <div class="grow"><h4>${p.name}</h4><span class="sub muted">${p.species} · ${p.breed} · ${p.owner}</span></div>
         <div style="text-align:right"><strong class="kg" style="color:var(--ink);font-size:17px">${fmt(p.kg)} kg</strong><br><span class="sub muted">latest weight</span></div>
       </div>
+      <div class="group">
+        <button type="button" class="row" id="dose-calc"><span class="icon-tile">℞</span>
+          <span class="grow"><strong>Calculate doses</strong><br><span class="sub">Opens the calculators with ${fmt(p.kg)} kg filled in</span></span>${chevron}</button>
+      </div>
       <div class="seg" role="group" aria-label="Section">
         <button type="button" id="seg-history" aria-pressed="${state.segment === "history"}">History</button>
         <button type="button" id="seg-vitals" aria-pressed="${state.segment === "vitals"}">Vitals</button>
@@ -344,6 +348,7 @@ textarea { width: 100%; font: inherit; color: var(--ink); background: transparen
       ${list.length ? `<div class="group">${list.map((e) => `
         <div class="row" style="display:block"><div class="entry-date">${e.date}</div><div class="entry-text">${e.text}</div></div>`).join("")}</div>`
         : `<p class="disclaimer">Nothing recorded yet.</p>`}`;
+    $("dose-calc").onclick = () => linkPatient(p);
     $("seg-history").onclick = () => go({ segment: "history" });
     $("seg-vitals").onclick = () => go({ segment: "vitals" });
     $("new-entry").onclick = () => {
@@ -520,12 +525,31 @@ textarea { width: 100%; font: inherit; color: var(--ink); background: transparen
   }
 
   // ---------- Calculations ----------
+  // Opening the calculators from a patient copies their latest weight (in kg) into every calculator.
+  const kgString = (kg) => String(Number(kg.toFixed(2)));
+  function linkPatient(p) {
+    for (const k in calc) Object.assign(calc[k], { weight: kgString(p.kg), wUnit: "kg" });
+    go({ tab: "calc", view: "list", calcPatientId: p.id });
+  }
+  // The linked patient, but only while the calculator still holds their chart weight.
+  function fromChart(s) {
+    const p = patients.find((x) => x.id === state.calcPatientId);
+    return p && s.wUnit === "kg" && s.weight === kgString(p.kg) ? p : null;
+  }
+  const weightTitle = (s) => { const p = fromChart(s); return `Patient weight${p ? ` · from ${p.name}'s chart` : ""}`; };
+
   function renderCalcList() {
     setNav("Calculations");
+    const linked = patients.find((x) => x.id === state.calcPatientId);
     const item = (id, letter, title, sub) => `
       <button type="button" class="row" data-calc="${id}"><span class="icon-tile">${letter}</span>
       <span class="grow"><strong>${title}</strong><br><span class="sub">${sub}</span></span>${chevron}</button>`;
     screen.innerHTML = `
+      ${linked ? `<div class="group"><div class="row">
+        <span class="avatar">${linked.name[0]}</span>
+        <span class="grow"><strong>${linked.name} · ${fmt(linked.kg)} kg</strong><br><span class="sub">Weight filled in for each calculator</span></span>
+        <button type="button" class="back" id="unlink" style="background:none;border:0;color:var(--blue);font:600 15px var(--body);cursor:pointer">Clear</button>
+      </div></div>` : ""}
       <div class="group">
         ${item("bolus", "B", "Bolus", "One-time dose in mL")}
         ${item("cri", "C", "CRI", "Syringe pump or added to a fluid bag")}
@@ -533,6 +557,7 @@ textarea { width: 100%; font: inherit; color: var(--ink); background: transparen
       </div>
       <div class="group">${item("library", "L", "Drug library", "Your drugs, strengths and default doses")}</div>
       <p class="disclaimer">Double-check every calculation and dose with the attending veterinarian before you give a drug. Example values below are for the demo only.</p>`;
+    if (linked) $("unlink").onclick = () => go({ calcPatientId: null });
     screen.querySelectorAll("[data-calc]").forEach((b) => b.onclick = () => {
       if (b.dataset.calc === "library") return renderLibrary();
       go({ view: b.dataset.calc });
@@ -584,7 +609,7 @@ textarea { width: 100%; font: inherit; color: var(--ink); background: transparen
     const ok = kg > 0 && dose > 0 && conc > 0;
     const mg = kg * dose, ml = mg / conc;
     screen.innerHTML = `
-      <div class="group-title">Patient weight</div>
+      <div class="group-title">${weightTitle(s)}</div>
       <div class="group">${weightRow(s, "b-w")}${s.wUnit !== "kg" && kg > 0 ? `<div class="field"><label>In kg</label><span>${fmt(kg)} kg</span></div>` : ""}</div>
       <div class="group-title">Drug</div>
       <div class="group"><div class="field"><label>Name</label><span class="muted">${s.drug}</span></div>${num("b-c", "Strength", s.conc, "mg/mL")}</div>
@@ -626,7 +651,7 @@ textarea { width: 100%; font: inherit; color: var(--ink); background: transparen
         <button type="button" id="cri-syr" aria-pressed="${s.mode === "syringe"}">Syringe pump</button>
         <button type="button" id="cri-bag" aria-pressed="${s.mode === "bag"}">Add to bag</button>
       </div>
-      <div class="group-title">Patient weight</div>
+      <div class="group-title">${weightTitle(s)}</div>
       <div class="group">${weightRow(s, "c-w")}</div>
       <div class="group-title">Drug</div>
       <div class="group"><div class="field"><label>Name</label><span class="muted">${s.drug}</span></div>${num("c-c", "Strength", s.conc, "mg/mL")}</div>
@@ -667,7 +692,7 @@ textarea { width: 100%; font: inherit; color: var(--ink); background: transparen
         <div class="group-title">Reversal: ${p.rev}</div>
         <div class="group">${num("r-rc", "Strength", s.revConc, "mg/mL")}${num("r-ratio", "Ratio", s.ratio, "× mg")}</div>`
       : `
-        <div class="group-title">Patient weight</div>
+        <div class="group-title">${weightTitle(s)}</div>
         <div class="group">${weightRow(s, "r-w")}</div>
         <div class="group-title">Reversal: ${p.rev}</div>
         <div class="group">${num("r-rc", "Strength", s.revConc, "mg/mL")}${num("r-d", "Dose", s.revDose, "mg/kg")}</div>`}
