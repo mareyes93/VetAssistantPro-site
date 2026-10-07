@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>VetAssistant Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: two columns on wide screens. A sticky clickable phone on the left, the IT brief on the right. They stack on phones. */
+:root {
+  --blue: #4BA3DB;
+  --green: #A8CF45;
+  --navy: #2F5E8C;
+  --bg: #F3F7FA;
+  --surface: #FFFFFF;
+  --ink: #1D3249;
+  --muted: #5B7187;
+  --line: #DCE6EE;
+  --phone-bg: #F2F5F8;
+  --phone-frame: #1D3249;
+  --warn: #D9822B;
+  --bad: #C8423A;
+  --on-accent: #FFFFFF;
+  --green-ink: #4F6E12;
+  --display: "Outfit", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body: "Source Sans 3", "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --blue: #5DB2E6; --green: #B5DA55; --navy: #9CC4EA;
+    --bg: #0E1822; --surface: #152331; --ink: #E2ECF4; --muted: #93A8BB; --line: #26394B;
+    --phone-bg: #0B141C; --phone-frame: #3A536B; --warn: #E9A158; --bad: #EE7A72;
+    --on-accent: #0E1822; --green-ink: #C9E87A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --blue: #5DB2E6; --green: #B5DA55; --navy: #9CC4EA;
+  --bg: #0E1822; --surface: #152331; --ink: #E2ECF4; --muted: #93A8BB; --line: #26394B;
+  --phone-bg: #0B141C; --phone-frame: #3A536B; --warn: #E9A158; --bad: #EE7A72;
+  --on-accent: #0E1822; --green-ink: #C9E87A;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 17px/1.55 var(--body); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 64px; display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: 56px; align-items: start; }
+@media (max-width: 920px) { .wrap { grid-template-columns: minmax(0, 1fr); gap: 40px; padding-block: 24px 48px; } }
+
+/* ---------- Brief ---------- */
+.brief { min-width: 0; display: grid; gap: 40px; }
+.eyebrow { font: 600 13px/1 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--blue); }
+h1 { font: 700 clamp(40px, 6vw, 60px)/1 var(--display); letter-spacing: -.02em; margin: 10px 0 0; color: var(--navy); text-wrap: balance; }
+h1 .v { color: var(--green); }
+.lede { font-size: 20px; color: var(--ink); max-width: 60ch; margin: 18px 0 0; }
+h2 { font: 600 24px/1.2 var(--display); margin: 0 0 14px; color: var(--navy); text-wrap: balance; }
+p { margin: 0; max-width: 65ch; }
+.stack { display: grid; gap: 12px; }
+.muted { color: var(--muted); }
+
+.features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 640px) { .features { grid-template-columns: minmax(0, 1fr); } }
+.feature { border-top: 3px solid var(--green); padding-top: 12px; }
+.feature h3 { font: 600 18px/1.3 var(--display); margin: 0 0 6px; }
+.feature p { font-size: 15.5px; color: var(--muted); }
+
+.spec { width: 100%; border-collapse: collapse; font-size: 16px; }
+.spec th, .spec td { text-align: left; vertical-align: top; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.spec th { width: 34%; padding-right: 16px; font-weight: 600; color: var(--muted); }
+.table-scroll { overflow-x: auto; }
+
+.flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 10px; margin: 6px 0 4px; }
+.node { flex: 1 1 150px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font-size: 15px; min-width: 0; }
+.node b { display: block; font-family: var(--display); font-weight: 600; font-size: 16px; color: var(--navy); }
+.node.now { border-color: var(--green); }
+.arrow { align-self: center; color: var(--muted); font-size: 20px; }
+@media (max-width: 640px) { .arrow { transform: rotate(90deg); flex-basis: 100%; text-align: center; } }
+
+.asks { counter-reset: ask; display: grid; gap: 14px; padding: 0; margin: 0; list-style: none; }
+.asks li { counter-increment: ask; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; }
+.asks li::before { content: counter(ask); font: 600 15px/30px var(--display); width: 30px; height: 30px; text-align: center; border-radius: 50%; background: var(--blue); color: var(--on-accent); }
+.asks b { font-weight: 600; }
+
+.note { background: var(--surface); border-left: 4px solid var(--green); padding: 14px 18px; border-radius: 0 10px 10px 0; font-size: 16px; }
+code { font-family: var(--mono); font-size: .88em; }
+
+/* ---------- Phone mock ---------- */
+.mock-col { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); display: grid; gap: 12px; justify-items: center; }
+@media (max-width: 920px) { .mock-col { position: static; } }
+.mock-caption { font-size: 14px; color: var(--muted); text-align: center; max-width: 340px; }
+.phone { width: 100%; max-width: 380px; height: 760px; border: 12px solid var(--phone-frame); border-radius: 48px; background: var(--phone-bg); overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px -30px rgba(29, 50, 73, .45); font-size: 15px; line-height: 1.35; }
+.status { display: flex; justify-content: space-between; padding: 12px 26px 4px; font: 600 13px var(--body); color: var(--ink); }
+.nav { display: flex; align-items: center; gap: 8px; padding: 6px 16px 10px; min-height: 44px; }
+.nav .back { background: none; border: 0; color: var(--blue); font: 600 16px var(--body); padding: 4px 0; cursor: pointer; }
+.nav h3 { font: 700 28px/1.1 var(--display); margin: 0; color: var(--ink); }
+.nav h3.small { font-size: 17px; font-weight: 600; flex: 1; text-align: center; padding-right: 40px; }
+.screen { flex: 1; overflow-y: auto; padding: 0 14px 16px; display: grid; align-content: start; gap: 14px; }
+.tabbar { display: flex; border-top: 1px solid var(--line); background: var(--surface); padding: 6px 0 14px; }
+.tabbar button { flex: 1; background: none; border: 0; color: var(--muted); font: 600 11px var(--body); display: grid; justify-items: center; gap: 2px; cursor: pointer; padding: 4px; }
+.tabbar button[aria-current="page"] { color: var(--blue); }
+.tabbar svg { width: 24px; height: 24px; }
+
+.group { background: var(--surface); border-radius: 12px; overflow: hidden; }
+.group-title { font: 600 12px var(--body); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 4px -8px; }
+.row { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-bottom: 1px solid var(--line); min-height: 46px; }
+.row:last-child { border-bottom: 0; }
+button.row { width: 100%; background: none; border-left: 0; border-right: 0; border-top: 0; text-align: left; color: inherit; font: inherit; cursor: pointer; }
+button.row:last-child { border-bottom: 0; }
+.row .grow { flex: 1; min-width: 0; }
+.row .sub { color: var(--muted); font-size: 13.5px; }
+.chev { color: var(--muted); }
+.avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--blue); color: var(--on-accent); display: grid; place-items: center; font: 700 16px var(--display); flex: none; }
+.icon-tile { width: 34px; height: 34px; border-radius: 8px; background: var(--green); color: #1D3249; display: grid; place-items: center; flex: none; font: 700 16px var(--display); }
+.kg { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px; }
+
+.patient-head { display: flex; gap: 12px; align-items: center; }
+.patient-head .avatar { width: 52px; height: 52px; font-size: 20px; }
+.patient-head h4 { margin: 0; font: 700 22px var(--display); color: var(--navy); }
+.seg { display: flex; background: var(--line); border-radius: 9px; padding: 2px; }
+.seg button { flex: 1; border: 0; background: none; padding: 6px; border-radius: 7px; font: 600 13.5px var(--body); color: var(--ink); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+
+.action { color: var(--blue); font-weight: 600; }
+.entry-date { font: 700 12px var(--body); color: var(--blue); }
+.entry-text { white-space: pre-line; }
+
+.field { display: flex; align-items: center; gap: 8px; padding: 9px 14px; border-bottom: 1px solid var(--line); min-height: 46px; }
+.field:last-child { border-bottom: 0; }
+.field label { flex: 1; }
+.field input, .field select { font: inherit; color: var(--ink); background: transparent; border: 0; text-align: right; width: 84px; padding: 4px 2px; font-variant-numeric: tabular-nums; }
+.field select { width: auto; text-align: left; color: var(--muted); }
+.field input:focus-visible, .field select:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 4px; }
+.unit { color: var(--muted); font-size: 14px; }
+textarea { width: 100%; font: inherit; color: var(--ink); background: transparent; border: 0; resize: none; padding: 12px 14px; min-height: 92px; }
+.btns { display: flex; gap: 8px; padding: 0 14px 12px; flex-wrap: wrap; }
+.pill-btn { border: 0; border-radius: 999px; padding: 8px 14px; font: 600 14px var(--body); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.pill-btn.green { background: var(--green); color: #1D3249; }
+.pill-btn.blue { background: var(--blue); color: var(--on-accent); }
+.pill-btn.rec { background: var(--bad); color: #fff; }
+.hint { font-size: 12.5px; color: var(--muted); padding: 0 14px 12px; }
+.badge { font: 700 11.5px var(--body); padding: 2px 7px; border-radius: 6px; white-space: nowrap; }
+.badge.ok { color: var(--green-ink); background: color-mix(in srgb, var(--green) 22%, transparent); }
+.badge.hi { color: var(--bad); background: color-mix(in srgb, var(--bad) 14%, transparent); }
+.badge.lo { color: var(--warn); background: color-mix(in srgb, var(--warn) 16%, transparent); }
+.filled { animation: flash 1.2s ease-out; }
+@keyframes flash { from { background: color-mix(in srgb, var(--green) 35%, transparent); } to { background: transparent; } }
+
+.result { display: flex; justify-content: space-between; align-items: baseline; padding: 11px 14px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.result:last-child { border-bottom: 0; }
+.result.big strong { font: 700 24px var(--display); color: var(--navy); }
+.math { font: 12px/1.5 var(--mono); color: var(--muted); padding: 10px 14px; }
+.disclaimer { font-size: 12.5px; color: var(--muted); padding: 0 4px; }
+
+@media (prefers-reduced-motion: reduce) { .filled { animation: none; } * { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <aside class="mock-col" aria-label="Clickable app mock">
+    <div class="phone" id="phone">
+      <div class="status"><span>9:41</span><span>●●● 100%</span></div>
+      <div class="nav" id="nav"></div>
+      <div class="screen" id="screen"></div>
+      <nav class="tabbar" id="tabbar">
+        <button type="button" id="tab-patients" data-tab="patients">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="6" cy="9" r="2.4"/><circle cx="10" cy="5" r="2.4"/><circle cx="14" cy="5" r="2.4"/><circle cx="18" cy="9" r="2.4"/><path d="M12 10.5c-3 0-6 4.2-6 6.6 0 1.8 1.5 2.4 3 2.4 1.2 0 2-.6 3-.6s1.8.6 3 .6c1.5 0 3-.6 3-2.4 0-2.4-3-6.6-6-6.6z"/></svg>
+          Patients
+        </button>
+        <button type="button" id="tab-calc" data-tab="calc">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 4h-2.5a2 2 0 0 0-2 1.8L9 19a2 2 0 0 1-2 1.8H5"/><path d="M7 11h8"/><path d="M15 14l4 5M19 14l-4 5"/></svg>
+          Calculations
+        </button>
+      </nav>
+    </div>
+    <p class="mock-caption">Click through it. The calculators really calculate. Voice is simulated here. The real app uses the device microphone.</p>
+  </aside>
+
+  <main class="brief">
+    <header>
+      <div class="eyebrow">Prototype for IT review · October 2026</div>
+      <h1>VetAssistant <span class="v">Pro</span></h1>
+      <p class="lede">An iPhone and iPad app for veterinary technicians. It records patient history and vitals by typing or by voice, and works out drug doses for boluses, CRIs and reversals. A working prototype is built. The mock on this page shows its screens.</p>
+    </header>
+
+    <section>
+      <h2>What it does</h2>
+      <div class="features">
+        <div class="feature">
+          <h3>History</h3>
+          <p>Type or dictate the owner's history. Quick headings like Appetite and Vomiting keep notes consistent.</p>
+        </div>
+        <div class="feature">
+          <h3>Vitals</h3>
+          <p>Weight with automatic kg conversion, HR, RR and effort, CRT with mucous membrane color, and temperature (aural or rectal). Say them in one sentence and the app fills in the fields.</p>
+        </div>
+        <div class="feature">
+          <h3>Calculations</h3>
+          <p>Bolus volumes, CRIs by syringe pump or fluid bag, and reversals sized to the drug and strength given. Every result shows its math.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>How it's built</h2>
+      <div class="table-scroll">
+        <table class="spec">
+          <tr><th>Platform</th><td>Native iOS and iPadOS 18 or later, written in Swift and SwiftUI</td></tr>
+          <tr><th>Data storage</th><td>SwiftData, saved only on the device. No server, no login, no sync.</td></tr>
+          <tr><th>Voice</th><td>Apple's Speech framework. It's set to on-device recognition, so audio stays on the device on supported models.</td></tr>
+          <tr><th>Network use</th><td>None in the current prototype</td></tr>
+          <tr><th>Permissions</th><td>Microphone and Speech Recognition, asked the first time someone taps Dictate</td></tr>
+          <tr><th>Testing</th><td>Automated tests cover the dose math and the voice-to-vitals parsing</td></tr>
+          <tr><th>Third-party code</th><td>None. It uses only Apple frameworks.</td></tr>
+        </table>
+      </div>
+    </section>
+
+    <section class="stack">
+      <h2>Data and privacy</h2>
+      <p>Patient and client details never leave the device in this version. Records are included in the device's own backup if backups are turned on. The app doesn't connect to our practice management software. Techs still chart there. This app is a working tool, not the medical record.</p>
+    </section>
+
+    <section class="stack">
+      <h2>Next step: AI help with vitals</h2>
+      <p>The next step is an AI service that turns loose dictation into structured vitals, for example "Bella's about sixty-two pounds, heart's at 96, pinkish, CRT under two." Today a built-in rule-based parser does this on the device. It works, but it needs fairly set phrasing.</p>
+      <div class="flow" role="img" aria-label="Planned data flow: the app on the iPad sends dictation text to a server the hospital controls, which calls the approved AI vendor">
+        <div class="node now"><b>App on device</b>Sends the dictation text only, never audio</div>
+        <div class="arrow" aria-hidden="true">→</div>
+        <div class="node"><b>Hospital-controlled server</b>Holds the API key and logs requests</div>
+        <div class="arrow" aria-hidden="true">→</div>
+        <div class="node"><b>Approved AI vendor</b>Returns the vitals as structured data</div>
+      </div>
+      <p class="muted">The API key would stay on the server, never inside the app. Nothing in this flow gets built until IT approves the vendor and the data terms.</p>
+    </section>
+
+    <section>
+      <h2>What I need from IT</h2>
+      <ol class="asks">
+        <li><span><b>A review of the prototype.</b> I can share the Xcode project, or demo it on a device.</span></li>
+        <li><span><b>A way to install it on work devices.</b> TestFlight, a custom app through Apple Business Manager, or our MDM. Whichever you prefer.</span></li>
+        <li><span><b>Permission settings.</b> Confirm work devices can allow microphone and speech recognition for this app.</span></li>
+        <li><span><b>An AI vendor decision.</b> Is there an approved AI service, and what data terms does it need?</span></li>
+        <li><span><b>Long term.</b> Would IT support connecting it to our practice management software?</span></li>
+      </ol>
+    </section>
+
+    <p class="note">On safety: the calculators show their work, the drug library's strengths can be edited to match what we stock, and the app reminds staff that every dose is confirmed with the attending veterinarian.</p>
+  </main>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const nav = $("nav"), screen = $("screen");
+  const fmt = (n) => {
+    if (!isFinite(n)) return "–";
+    const d = n !== 0 && Math.abs(n) < 0.1 ? 3 : 2;
+    return Number(n.toFixed(d)).toLocaleString(undefined, { maximumFractionDigits: d });
+  };
+  const LB_PER_KG = 2.20462;
+  const toKg = (v, u) => u === "kg" ? v : u === "lb" ? v / LB_PER_KG : v / 1000;
+
+  // Example patients for the mock.
+  const patients = [
+    { id: "bella", name: "Bella", species: "Dog", breed: "Labrador", owner: "Garcia", kg: 28.12,
+      history: [{ date: "Oct 7, 8:15 AM", text: "Chief complaint: vomiting x2 since last night.\nAppetite: decreased, ate half of breakfast.\nDiarrhea: none.\nToxin exposure: owner unsure, got into trash Sunday." }],
+      vitals: [{ date: "Oct 7, 8:20 AM", text: "Wt 62 lb (28.12 kg) · HR 96 · RR 24, normal · CRT < 2 sec · MM pink · T 101.8°F rectal" }] },
+    { id: "milo", name: "Milo", species: "Cat", breed: "DSH", owner: "Nguyen", kg: 4.6,
+      history: [{ date: "Oct 6, 3:40 PM", text: "Chief complaint: straining in litter box.\nUrination: small amounts, frequent.\nEnergy: hiding more than usual." }],
+      vitals: [{ date: "Oct 6, 3:45 PM", text: "Wt 4.6 kg · HR 210 · RR 36, increased · CRT < 2 sec · MM pink · T 101.2°F rectal" }] },
+    { id: "tucker", name: "Tucker", species: "Dog", breed: "Beagle", owner: "Patel", kg: 11.8, history: [], vitals: [] },
+  ];
+
+  const ranges = { Dog: { hr: [60, 140], rr: [10, 30], t: [100, 102.5] }, Cat: { hr: [140, 220], rr: [20, 40], t: [100, 102.5] } };
+
+  let state = { tab: "patients", view: "list", patientId: null, segment: "history" };
+  let vitalsForm = null;
+
+  const chevron = '<span class="chev" aria-hidden="true">›</span>';
+
+  function setNav(title, back) {
+    nav.innerHTML = back
+      ? `<button type="button" class="back" id="nav-back">‹ ${back.label}</button><h3 class="small">${title}</h3>`
+      : `<h3>${title}</h3>`;
+    if (back) $("nav-back").onclick = back.go;
+  }
+
+  function go(next) { state = Object.assign({}, state, next); render(); screen.scrollTop = 0; }
+
+  function render() {
+    document.querySelectorAll("#tabbar button").forEach((b) => {
+      if (b.dataset.tab === state.tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+    });
+    if (state.tab === "patients") {
+      if (state.view === "list") return renderPatients();
+      if (state.view === "detail") return renderDetail();
+      if (state.view === "vitals-entry") return renderVitalsEntry();
+    } else {
+      if (state.view === "list") return renderCalcList();
+      if (state.view === "bolus") return renderBolus();
+      if (state.view === "cri") return renderCRI();
+      if (state.view === "reversal") return renderReversal();
+    }
+  }
+
+  // ---------- Patients ----------
+  function renderPatients() {
+    setNav("Patients");
+    screen.innerHTML = `
+      <div class="group">${patients.map((p) => `
+        <button type="button" class="row" data-open="${p.id}">
+          <span class="avatar">${p.name[0]}</span>
+          <span class="grow"><strong>${p.name}</strong><br><span class="sub">${p.breed} · ${p.owner}</span></span>
+          <span class="kg">${fmt(p.kg)} kg</span>${chevron}
+        </button>`).join("")}
+      </div>`;
+    screen.querySelectorAll("[data-open]").forEach((b) => b.onclick = () => go({ view: "detail", patientId: b.dataset.open, segment: "history" }));
+  }
+
+  function current() { return patients.find((p) => p.id === state.patientId); }
+
+  function renderDetail() {
+    const p = current();
+    setNav(p.name, { label: "Patients", go: () => go({ view: "list" }) });
+    const list = state.segment === "history" ? p.history : p.vitals;
+    screen.innerHTML = `
+      <div class="patient-head">
+        <span class="avatar">${p.name[0]}</span>
+        <div class="grow"><h4>${p.name}</h4><span class="sub muted">${p.species} · ${p.breed} · ${p.owner}</span></div>
+        <div style="text-align:right"><strong class="kg" style="color:var(--ink);font-size:17px">${fmt(p.kg)} kg</strong><br><span class="sub muted">latest weight</span></div>
+      </div>
+      <div class="seg" role="group" aria-label="Section">
+        <button type="button" id="seg-history" aria-pressed="${state.segment === "history"}">History</button>
+        <button type="button" id="seg-vitals" aria-pressed="${state.segment === "vitals"}">Vitals</button>
+      </div>
+      <div class="group">
+        <button type="button" class="row action" id="new-entry">${state.segment === "history" ? "✎  New history entry" : "♥  Record vitals"}</button>
+      </div>
+      ${list.length ? `<div class="group">${list.map((e) => `
+        <div class="row" style="display:block"><div class="entry-date">${e.date}</div><div class="entry-text">${e.text}</div></div>`).join("")}</div>`
+        : `<p class="disclaimer">Nothing recorded yet.</p>`}`;
+    $("seg-history").onclick = () => go({ segment: "history" });
+    $("seg-vitals").onclick = () => go({ segment: "vitals" });
+    $("new-entry").onclick = () => {
+      if (state.segment === "vitals") { vitalsForm = null; go({ view: "vitals-entry" }); }
+      else { addHistoryDraft(); go({ segment: "history" }); }
+    };
+  }
+
+  function addHistoryDraft() {
+    const p = current();
+    p.history.unshift({ date: "Just now", text: "Chief complaint: \nAppetite: \nVomiting: \nDiarrhea: " });
+  }
+
+  // ---------- Vitals entry ----------
+  const SAMPLE = "Weight 62 pounds, heart rate 150, resp 24 normal effort, CRT less than 2 seconds, pink, temp 101.8 rectal";
+
+  function parseVitals(text) {
+    const t = text.toLowerCase();
+    const r = {};
+    let m;
+    if ((m = t.match(/\b(?:weight|weighs|wt)\b[^0-9]{0,15}(\d+(?:\.\d+)?)\s*(kilograms?|kilos?|kgs?|pounds?|lbs?|grams?|g\b)?/))) {
+      r.weight = parseFloat(m[1]);
+      if (m[2]) r.weightUnit = m[2][0] === "k" ? "kg" : (m[2][0] === "p" || m[2][0] === "l") ? "lb" : "g";
+    }
+    if ((m = t.match(/\b(?:heart rate|heart|hr|pulse)\b[^0-9]{0,15}(\d{2,3})/))) r.hr = parseInt(m[1]);
+    if ((m = t.match(/\b(?:respiratory rate|respirations|respiratory|resp rate|resp|rr)\b[^0-9]{0,15}(\d{1,3})/))) r.rr = parseInt(m[1]);
+    if (/\b(?:unlabou?red|normal effort|eupneic)\b/.test(t)) r.effort = "Normal";
+    else if (/\bopen[- ]mouth/.test(t)) r.effort = "Open-mouth";
+    else if (/\bpanting\b/.test(t)) r.effort = "Panting";
+    else if (/\blabou?red\b/.test(t)) r.effort = "Labored";
+    else if (/\bincreased effort\b/.test(t)) r.effort = "Increased";
+    if ((m = t.match(/\b(?:crt|cap(?:illary)? refill(?: time)?)\b[^0-9<>]{0,20}?(less than|under|<|greater than|more than|over|>)?\s*(\d+(?:\.\d+)?)/))) {
+      const s = parseFloat(m[2]), q = m[1] || "";
+      if (/less|under|</.test(q)) r.crt = s <= 1 ? "< 1 sec" : s <= 2 ? "< 2 sec" : "2–3 sec";
+      else if (/greater|more|over|>/.test(q)) r.crt = s >= 3 ? "> 3 sec" : "2–3 sec";
+      else r.crt = s < 1 ? "< 1 sec" : s <= 2 ? "< 2 sec" : s <= 3 ? "2–3 sec" : "> 3 sec";
+    }
+    const mm = [[/\bbrick red\b/, "Brick red"], [/\bpale pink\b/, "Pale pink"], [/\b(?:injected|red)\b/, "Injected (red)"], [/\b(?:cyanotic|blue)\b/, "Cyanotic (blue)"], [/\b(?:icteric|yellow)\b/, "Icteric (yellow)"], [/\b(?:gray|grey)\b/, "Gray"], [/\b(?:pale|white)\b/, "Pale / white"], [/\bpink\b/, "Pink"]];
+    for (const [re, v] of mm) if (re.test(t)) { r.mm = v; break; }
+    if ((m = t.match(/\b(?:temperature|temp)\b[^0-9]{0,15}(\d{2,3}(?:\.\d+)?)/))) {
+      r.temp = parseFloat(m[1]);
+      r.tempUnit = /celsius|degrees c/.test(t) ? "C" : r.temp > 50 ? "F" : "C";
+    }
+    if (/\brectal/.test(t)) r.route = "Rectal"; else if (/\b(?:aural|ear|otic)\b/.test(t)) r.route = "Aural";
+    return r;
+  }
+
+  function badge(value, range) {
+    if (value == null || isNaN(value) || !range) return "";
+    if (value < range[0]) return `<span class="badge lo">↓ Low</span>`;
+    if (value > range[1]) return `<span class="badge hi">↑ High</span>`;
+    return `<span class="badge ok">✓ WNL</span>`;
+  }
+
+  const selectOpts = (opts, sel) => `<option value="">Not recorded</option>` + opts.map((o) => `<option${o === sel ? " selected" : ""}>${o}</option>`).join("");
+
+  function renderVitalsEntry() {
+    const p = current();
+    const f = vitalsForm || (vitalsForm = { spoken: "", weight: "", weightUnit: "lb", hr: "", rr: "", effort: "", crt: "", mm: "", temp: "", tempUnit: "F", route: "Rectal", message: "", filled: [] });
+    const r = ranges[p.species];
+    const kg = f.weight !== "" ? toKg(parseFloat(f.weight), f.weightUnit) : null;
+    const tempF = f.temp !== "" ? (f.tempUnit === "F" ? parseFloat(f.temp) : parseFloat(f.temp) * 9 / 5 + 32) : null;
+    const other = f.temp !== "" ? (f.tempUnit === "F" ? `${fmt((parseFloat(f.temp) - 32) * 5 / 9)} °C` : `${fmt(tempF)} °F`) : "";
+    const fl = (k) => f.filled.includes(k) ? " filled" : "";
+    setNav("Record vitals", { label: "Cancel", go: () => go({ view: "detail" }) });
+    screen.innerHTML = `
+      <div class="group-title">Speak or type vitals</div>
+      <div class="group">
+        <textarea id="v-spoken" aria-label="Spoken vitals" placeholder="e.g. Weight 22 lb, HR 120, resp 24 normal effort, CRT under 2, pink, temp 101.5 rectal">${f.spoken}</textarea>
+        <div class="btns">
+          <button type="button" class="pill-btn green" id="v-dictate">🎙 Dictate</button>
+          <button type="button" class="pill-btn blue" id="v-fill">Fill in fields</button>
+        </div>
+        ${f.message ? `<div class="hint">${f.message}</div>` : `<div class="hint">Check every field before you save.</div>`}
+      </div>
+
+      <div class="group-title">Weight</div>
+      <div class="group">
+        <div class="field${fl("weight")}"><label for="v-weight">Weight</label><input id="v-weight" inputmode="decimal" value="${f.weight}" placeholder="0">
+          <select id="v-wunit" aria-label="Weight unit">${["lb", "kg", "g"].map((u) => `<option${u === f.weightUnit ? " selected" : ""}>${u}</option>`).join("")}</select></div>
+        ${kg != null && !isNaN(kg) ? `<div class="field"><label>Weight in kg</label><strong style="color:var(--navy);font-variant-numeric:tabular-nums">${fmt(kg)} kg</strong></div>` : ""}
+      </div>
+
+      <div class="group-title">Heart rate</div>
+      <div class="group"><div class="field${fl("hr")}"><label for="v-hr">Heart rate</label><input id="v-hr" inputmode="numeric" value="${f.hr}" placeholder="0"><span class="unit">bpm</span>${badge(parseFloat(f.hr), r && r.hr)}</div></div>
+
+      <div class="group-title">Respiration</div>
+      <div class="group">
+        <div class="field${fl("rr")}"><label for="v-rr">Resp rate</label><input id="v-rr" inputmode="numeric" value="${f.rr}" placeholder="0"><span class="unit">brpm</span>${badge(parseFloat(f.rr), r && r.rr)}</div>
+        <div class="field${fl("effort")}"><label for="v-effort">Effort</label><select id="v-effort">${selectOpts(["Normal", "Increased", "Labored", "Panting", "Open-mouth"], f.effort)}</select></div>
+      </div>
+
+      <div class="group-title">Perfusion</div>
+      <div class="group">
+        <div class="field${fl("crt")}"><label for="v-crt">CRT</label><select id="v-crt">${selectOpts(["< 1 sec", "< 2 sec", "2–3 sec", "> 3 sec"], f.crt)}</select></div>
+        <div class="field${fl("mm")}"><label for="v-mm">Mucous membranes</label><select id="v-mm">${selectOpts(["Pink", "Pale pink", "Pale / white", "Injected (red)", "Brick red", "Cyanotic (blue)", "Icteric (yellow)", "Gray", "Muddy"], f.mm)}</select></div>
+      </div>
+
+      <div class="group-title">Temperature</div>
+      <div class="group">
+        <div class="field${fl("temp")}"><label for="v-temp">Temp</label><input id="v-temp" inputmode="decimal" value="${f.temp}" placeholder="0">
+          <select id="v-tunit" aria-label="Temperature unit">${["F", "C"].map((u) => `<option value="${u}"${u === f.tempUnit ? " selected" : ""}>°${u}</option>`).join("")}</select></div>
+        <div class="field${fl("route")}"><label for="v-route">Route</label><select id="v-route">${["Rectal", "Aural"].map((u) => `<option${u === f.route ? " selected" : ""}>${u}</option>`).join("")}</select></div>
+        ${other ? `<div class="field"><label class="muted">${other}</label>${badge(tempF, r && r.t)}</div>` : ""}
+      </div>
+
+      <div class="group"><button type="button" class="row action" id="v-save" style="justify-content:center">Save vitals</button></div>`;
+
+    f.filled = [];
+    const bind = (id, key, rerender) => {
+      const el = $(id);
+      el.addEventListener(el.tagName === "SELECT" ? "change" : "input", () => { f[key] = el.value; if (rerender) keepFocus(id); });
+    };
+    bind("v-spoken", "spoken");
+    bind("v-weight", "weight", true); bind("v-wunit", "weightUnit", true);
+    bind("v-hr", "hr", true); bind("v-rr", "rr", true);
+    bind("v-effort", "effort"); bind("v-crt", "crt"); bind("v-mm", "mm");
+    bind("v-temp", "temp", true); bind("v-tunit", "tempUnit", true); bind("v-route", "route");
+
+    $("v-dictate").onclick = simulateDictation;
+    $("v-fill").onclick = () => {
+      const parsed = parseVitals(f.spoken);
+      const map = { weight: "weight", weightUnit: "weightUnit", hr: "hr", rr: "rr", effort: "effort", crt: "crt", mm: "mm", temp: "temp", tempUnit: "tempUnit", route: "route" };
+      const filled = [];
+      for (const k in map) if (parsed[k] != null) { f[map[k]] = String(parsed[k]); filled.push(k); }
+      const count = ["weight", "hr", "rr", "effort", "crt", "mm", "temp"].filter((k) => parsed[k] != null).length;
+      f.message = count ? `Filled in ${count} field${count === 1 ? "" : "s"}. Check them below.` : `Didn't recognize any vitals. Say the name before each number, like "heart rate 120".`;
+      render();
+      f.filled = filled;
+      render();
+    };
+    $("v-save").onclick = () => {
+      const parts = [];
+      if (f.weight) parts.push(`Wt ${f.weight} ${f.weightUnit}${f.weightUnit !== "kg" ? ` (${fmt(kg)} kg)` : ""}`);
+      if (f.hr) parts.push(`HR ${f.hr}`);
+      if (f.rr) parts.push(`RR ${f.rr}${f.effort ? ", " + f.effort.toLowerCase() : ""}`);
+      if (f.crt) parts.push(`CRT ${f.crt}`);
+      if (f.mm) parts.push(`MM ${f.mm.toLowerCase()}`);
+      if (f.temp) parts.push(`T ${f.temp}°${f.tempUnit} ${f.route.toLowerCase()}`);
+      if (parts.length) {
+        p.vitals.unshift({ date: "Just now", text: parts.join(" · ") });
+        if (kg && !isNaN(kg)) p.kg = kg;
+      }
+      go({ view: "detail", segment: "vitals" });
+    };
+  }
+
+  function keepFocus(id) {
+    const el = $(id);
+    const pos = el.selectionStart;
+    renderVitalsEntry();
+    const again = $(id);
+    again.focus();
+    if (pos != null && again.setSelectionRange) try { again.setSelectionRange(pos, pos); } catch (e) {}
+  }
+
+  let typing = null;
+  function simulateDictation() {
+    const btn = $("v-dictate");
+    if (typing) { clearInterval(typing); typing = null; btn.className = "pill-btn green"; btn.textContent = "🎙 Dictate"; return; }
+    btn.className = "pill-btn rec"; btn.textContent = "■ Stop";
+    const area = $("v-spoken");
+    const words = SAMPLE.split(" ");
+    let i = 0;
+    vitalsForm.spoken = "";
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) { vitalsForm.spoken = SAMPLE; area.value = SAMPLE; btn.className = "pill-btn green"; btn.textContent = "🎙 Dictate"; return; }
+    typing = setInterval(() => {
+      vitalsForm.spoken += (i ? " " : "") + words[i];
+      area.value = vitalsForm.spoken;
+      i++;
+      if (i >= words.length) { clearInterval(typing); typing = null; btn.className = "pill-btn green"; btn.textContent = "🎙 Dictate"; }
+    }, 140);
+  }
+
+  // ---------- Calculations ----------
+  function renderCalcList() {
+    setNav("Calculations");
+    const item = (id, letter, title, sub) => `
+      <button type="button" class="row" data-calc="${id}"><span class="icon-tile">${letter}</span>
+      <span class="grow"><strong>${title}</strong><br><span class="sub">${sub}</span></span>${chevron}</button>`;
+    screen.innerHTML = `
+      <div class="group">
+        ${item("bolus", "B", "Bolus", "One-time dose in mL")}
+        ${item("cri", "C", "CRI", "Syringe pump or added to a fluid bag")}
+        ${item("reversal", "R", "Reversals", "Based on the drug and strength given")}
+      </div>
+      <div class="group">${item("library", "L", "Drug library", "Your drugs, strengths and default doses")}</div>
+      <p class="disclaimer">Double-check every calculation and dose with the attending veterinarian before you give a drug. Example values below are for the demo only.</p>`;
+    screen.querySelectorAll("[data-calc]").forEach((b) => b.onclick = () => {
+      if (b.dataset.calc === "library") return renderLibrary();
+      go({ view: b.dataset.calc });
+    });
+  }
+
+  const library = [["Acepromazine", "10 mg/mL"], ["Atipamezole", "5 mg/mL"], ["Buprenorphine", "0.3 mg/mL"], ["Butorphanol", "10 mg/mL"], ["Dexmedetomidine", "0.5 mg/mL"], ["Fentanyl", "50 mcg/mL"], ["Hydromorphone", "2 mg/mL"], ["Ketamine", "100 mg/mL"], ["Lidocaine 2%", "20 mg/mL"], ["Maropitant", "10 mg/mL"], ["Midazolam", "5 mg/mL"], ["Naloxone", "0.4 mg/mL"], ["Propofol", "10 mg/mL"]];
+  function renderLibrary() {
+    setNav("Drug library", { label: "Calculations", go: () => go({ view: "list" }) });
+    screen.innerHTML = `<div class="group">${library.map(([n, s]) => `<div class="row"><span class="grow">${n}</span><span class="kg" style="color:var(--navy)">${s}</span></div>`).join("")}</div>
+      <p class="disclaimer">Starter strengths are common vial sizes. Staff can edit them and add their own to match what the hospital stocks.</p>`;
+  }
+
+  // Simple form builder for calculators
+  const calc = {
+    bolus: { weight: "62", wUnit: "lb", drug: "Butorphanol", conc: "10", dose: "0.2" },
+    cri: { mode: "syringe", weight: "20", wUnit: "kg", drug: "Lidocaine 2%", conc: "20", rate: "50", rateUnit: "mcg/kg/min", fluid: "60", bag: "1000" },
+    reversal: { preset: 0, givenConc: "0.5", volGiven: "0.3", ratio: "10", revConc: "5", revDose: "", weight: "62", wUnit: "lb" },
+  };
+  const presets = [
+    { name: "Dexmedetomidine → Atipamezole", given: "Dexmedetomidine", rev: "Atipamezole", givenConc: 0.5, revConc: 5, ratio: 10, note: "Dog label: equal volume to dexmedetomidine 0.5 mg/mL (10× the mg). Confirm with the DVM." },
+    { name: "Medetomidine → Atipamezole", given: "Medetomidine", rev: "Atipamezole", givenConc: 1, revConc: 5, ratio: 5, note: "Equal volume to medetomidine 1 mg/mL (5× the mg)." },
+    { name: "Opioid → Naloxone", rev: "Naloxone", revConc: 0.4, perKg: 0.04, note: "Commonly 0.01–0.04 mg/kg. Dose per the DVM." },
+    { name: "Benzodiazepine → Flumazenil", rev: "Flumazenil", revConc: 0.1, perKg: 0.01, note: "Commonly 0.01 mg/kg. Dose per the DVM." },
+  ];
+
+  const num = (id, label, val, unit) => `<div class="field"><label for="${id}">${label}</label><input id="${id}" inputmode="decimal" value="${val}" placeholder="0"><span class="unit">${unit}</span></div>`;
+  const weightRow = (s, id) => `<div class="field"><label for="${id}">Weight</label><input id="${id}" inputmode="decimal" value="${s.weight}" placeholder="0">
+      <select id="${id}-u" aria-label="Weight unit">${["lb", "kg", "g"].map((u) => `<option${u === s.wUnit ? " selected" : ""}>${u}</option>`).join("")}</select></div>`;
+
+  function wire(s, map, rerender) {
+    for (const id in map) {
+      const el = $(id);
+      if (!el) continue;
+      el.addEventListener(el.tagName === "SELECT" ? "change" : "input", () => {
+        s[map[id]] = el.value;
+        const pos = el.selectionStart;
+        rerender();
+        const again = $(id);
+        if (again) { again.focus(); if (pos != null && again.setSelectionRange) try { again.setSelectionRange(pos, pos); } catch (e) {} }
+      });
+    }
+  }
+
+  function renderBolus() {
+    const s = calc.bolus;
+    setNav("Bolus", { label: "Calculations", go: () => go({ view: "list" }) });
+    const kg = toKg(parseFloat(s.weight), s.wUnit), dose = parseFloat(s.dose), conc = parseFloat(s.conc);
+    const ok = kg > 0 && dose > 0 && conc > 0;
+    const mg = kg * dose, ml = mg / conc;
+    screen.innerHTML = `
+      <div class="group-title">Patient weight</div>
+      <div class="group">${weightRow(s, "b-w")}${s.wUnit !== "kg" && kg > 0 ? `<div class="field"><label>In kg</label><span>${fmt(kg)} kg</span></div>` : ""}</div>
+      <div class="group-title">Drug</div>
+      <div class="group"><div class="field"><label>Name</label><span class="muted">${s.drug}</span></div>${num("b-c", "Strength", s.conc, "mg/mL")}</div>
+      <div class="group-title">Ordered dose</div>
+      <div class="group">${num("b-d", "Dose", s.dose, "mg/kg")}</div>
+      <div class="group-title">Result</div>
+      <div class="group">${ok ? `
+        <div class="result"><span>Total dose</span><span>${fmt(mg)} mg</span></div>
+        <div class="result big"><span>Draw up</span><strong>${fmt(ml)} mL</strong></div>
+        <div class="math">${fmt(kg)} kg × ${fmt(dose)} mg/kg ÷ ${fmt(conc)} mg/mL</div>` : `<div class="result"><span class="muted">Enter weight, strength and dose.</span></div>`}</div>`;
+    wire(s, { "b-w": "weight", "b-w-u": "wUnit", "b-c": "conc", "b-d": "dose" }, renderBolus);
+  }
+
+  function renderCRI() {
+    const s = calc.cri;
+    setNav("CRI", { label: "Calculations", go: () => go({ view: "list" }) });
+    const kg = toKg(parseFloat(s.weight), s.wUnit), conc = parseFloat(s.conc), rate = parseFloat(s.rate);
+    const perHr = { "mcg/kg/min": rate * 60 / 1000, "mcg/kg/hr": rate / 1000, "mg/kg/hr": rate, "mg/kg/min": rate * 60 }[s.rateUnit];
+    const mgHr = kg * perHr;
+    let results;
+    if (!(kg > 0 && conc > 0 && rate > 0)) results = `<div class="result"><span class="muted">Enter weight, strength and rate.</span></div>`;
+    else if (s.mode === "syringe") {
+      results = `<div class="result"><span>Drug per hour</span><span>${fmt(mgHr)} mg/hr</span></div>
+        <div class="result big"><span>Pump rate</span><strong>${fmt(mgHr / conc)} mL/hr</strong></div>
+        <div class="math">${fmt(kg)} kg × ${fmt(perHr)} mg/kg/hr ÷ ${fmt(conc)} mg/mL</div>`;
+    } else {
+      const fluid = parseFloat(s.fluid), bag = parseFloat(s.bag);
+      if (fluid > 0 && bag > 0) {
+        const mgAdd = mgHr / fluid * bag, mlAdd = mgAdd / conc;
+        results = `<div class="result"><span>Drug to add</span><span>${fmt(mgAdd)} mg</span></div>
+          <div class="result big"><span>Volume to add</span><strong>${fmt(mlAdd)} mL</strong></div>
+          <div class="result"><span>Bag concentration</span><span>${fmt(mgHr / fluid)} mg/mL</span></div>
+          <div class="result"><span>Bag lasts</span><span>${fmt(bag / fluid)} hr</span></div>
+          <div class="math">Remove ${fmt(mlAdd)} mL of fluid from the bag first, then add the drug.</div>`;
+      } else results = `<div class="result"><span class="muted">Enter fluid rate and bag size.</span></div>`;
+    }
+    screen.innerHTML = `
+      <div class="seg" role="group" aria-label="Method">
+        <button type="button" id="cri-syr" aria-pressed="${s.mode === "syringe"}">Syringe pump</button>
+        <button type="button" id="cri-bag" aria-pressed="${s.mode === "bag"}">Add to bag</button>
+      </div>
+      <div class="group-title">Patient weight</div>
+      <div class="group">${weightRow(s, "c-w")}</div>
+      <div class="group-title">Drug</div>
+      <div class="group"><div class="field"><label>Name</label><span class="muted">${s.drug}</span></div>${num("c-c", "Strength", s.conc, "mg/mL")}</div>
+      <div class="group-title">Ordered rate</div>
+      <div class="group"><div class="field"><label for="c-r">Rate</label><input id="c-r" inputmode="decimal" value="${s.rate}">
+        <select id="c-ru" aria-label="Rate unit">${["mcg/kg/min", "mcg/kg/hr", "mg/kg/hr", "mg/kg/min"].map((u) => `<option${u === s.rateUnit ? " selected" : ""}>${u}</option>`).join("")}</select></div></div>
+      ${s.mode === "bag" ? `<div class="group-title">Fluids</div><div class="group">${num("c-f", "Fluid rate", s.fluid, "mL/hr")}${num("c-b", "Bag size", s.bag, "mL")}</div>` : ""}
+      <div class="group-title">Result</div>
+      <div class="group">${results}</div>`;
+    $("cri-syr").onclick = () => { s.mode = "syringe"; renderCRI(); };
+    $("cri-bag").onclick = () => { s.mode = "bag"; renderCRI(); };
+    wire(s, { "c-w": "weight", "c-w-u": "wUnit", "c-c": "conc", "c-r": "rate", "c-ru": "rateUnit", "c-f": "fluid", "c-b": "bag" }, renderCRI);
+  }
+
+  function renderReversal() {
+    const s = calc.reversal, p = presets[s.preset];
+    setNav("Reversals", { label: "Calculations", go: () => go({ view: "list" }) });
+    const isRatio = p.ratio != null;
+    let mg, ok;
+    if (isRatio) {
+      const vol = parseFloat(s.volGiven), gc = parseFloat(s.givenConc), ratio = parseFloat(s.ratio);
+      ok = vol > 0 && gc > 0 && ratio > 0 && parseFloat(s.revConc) > 0;
+      mg = vol * gc * ratio;
+    } else {
+      const kg = toKg(parseFloat(s.weight), s.wUnit);
+      ok = kg > 0 && parseFloat(s.revDose) > 0 && parseFloat(s.revConc) > 0;
+      mg = kg * parseFloat(s.revDose);
+    }
+    const ml = mg / parseFloat(s.revConc);
+    screen.innerHTML = `
+      <div class="group">
+        <div class="field"><label for="r-p">Reversal</label><select id="r-p">${presets.map((x, i) => `<option value="${i}"${i === s.preset ? " selected" : ""}>${x.name}</option>`).join("")}</select></div>
+        <div class="hint" style="padding-top:10px">${p.note}</div>
+      </div>
+      ${isRatio ? `
+        <div class="group-title">Given: ${p.given}</div>
+        <div class="group">${num("r-gc", "Strength", s.givenConc, "mg/mL")}${num("r-v", "Volume given", s.volGiven, "mL")}</div>
+        <div class="group-title">Reversal: ${p.rev}</div>
+        <div class="group">${num("r-rc", "Strength", s.revConc, "mg/mL")}${num("r-ratio", "Ratio", s.ratio, "× mg")}</div>`
+      : `
+        <div class="group-title">Patient weight</div>
+        <div class="group">${weightRow(s, "r-w")}</div>
+        <div class="group-title">Reversal: ${p.rev}</div>
+        <div class="group">${num("r-rc", "Strength", s.revConc, "mg/mL")}${num("r-d", "Dose", s.revDose, "mg/kg")}</div>`}
+      <div class="group-title">Result</div>
+      <div class="group">${ok ? `
+        <div class="result"><span>${p.rev} dose</span><span>${fmt(mg)} mg</span></div>
+        <div class="result big"><span>Draw up</span><strong>${fmt(ml)} mL</strong></div>
+        ${isRatio ? `<div class="math">That's ${fmt(ml / parseFloat(s.volGiven))}× the volume given.</div>` : ""}` : `<div class="result"><span class="muted">Fill in the fields above.</span></div>`}</div>`;
+    $("r-p").onchange = (e) => {
+      const i = parseInt(e.target.value), x = presets[i];
+      Object.assign(s, { preset: i, revConc: String(x.revConc), givenConc: x.givenConc ? String(x.givenConc) : "", ratio: x.ratio ? String(x.ratio) : "", revDose: x.perKg ? String(x.perKg) : "" });
+      renderReversal();
+    };
+    wire(s, { "r-gc": "givenConc", "r-v": "volGiven", "r-rc": "revConc", "r-ratio": "ratio", "r-d": "revDose", "r-w": "weight", "r-w-u": "wUnit" }, renderReversal);
+  }
+
+  document.querySelectorAll("#tabbar button").forEach((b) => b.onclick = () => go({ tab: b.dataset.tab, view: "list" }));
+  render();
+})();
+</script>
+</body>
+</html>
